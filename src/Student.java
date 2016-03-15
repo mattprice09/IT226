@@ -20,6 +20,33 @@ public class Student {
 		classGrades.put(className, grade);
 	}
 
+	// Get the grade for the input class. Returns null if class name doesn't
+	// exist.
+	public Character getClassGrade(String className) {
+		return this.classGrades.get(className);
+	}
+
+	// Add input assignment to ArrayList of assignments for the class with the
+	// specified name
+	public void addAssignment(String className, Assignment assignment) {
+		ArrayList<Assignment> assigns = new ArrayList<Assignment>();
+
+		// check if list of specified class' assignments already exists
+		if (classAssignments.containsKey(className)) {
+			assigns = classAssignments.get(className);
+		}
+		assigns.add(assignment);
+		classAssignments.put(className, assigns);
+	}
+
+	// Get the list of assignments for the specified class. Returns null if
+	// class name is invalid.
+	public ArrayList<Assignment> getClassAssignments(String className) {
+		return this.classAssignments.get(className);
+	}
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~ Getters and setters below ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 	public String getfName() {
 		return fName;
 	}
@@ -36,6 +63,14 @@ public class Student {
 		this.lName = lName;
 	}
 
+	public Map<String, ArrayList<Assignment>> getClassAssignments() {
+		return classAssignments;
+	}
+
+	public void setClassAssignments(Map<String, ArrayList<Assignment>> classAssignments) {
+		this.classAssignments = classAssignments;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -44,8 +79,8 @@ public class Student {
 		this.id = id;
 	}
 
-	public Character getClassGrade(String className) {
-		return this.classGrades.get(className);
+	public void setClassGrades(Map<String, Character> classGrades) {
+		this.classGrades = classGrades;
 	}
 
 	public Map<String, Character> getClassGrades() {

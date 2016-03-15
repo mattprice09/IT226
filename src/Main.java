@@ -6,12 +6,56 @@ import java.util.Scanner;
 
 public class Main {
 
-//	public static ArrayList<Student> allStudents = new ArrayList<Student>();
 	public static Map<String, Student> allStudents = new HashMap<String, Student>();
 	public static ArrayList<Class> allClasses = new ArrayList<Class>();
 
+	// Helper method that returns a map of all row indeces mapped to data 'type'
+	private static Map<Integer, String> headerHelper(String [] parts) {
+		Map<Integer, String> output = new HashMap<Integer, String>();
+		for (int i = 0; i < parts.length; i++) {
+			
+			// Find the column that contains student id's
+			if (parts[i].contains("id")) {
+				output.put(i, "id");
+			}
+		}
+		
+		return output;
+	}
+	
 	public static void ReadData(String fileName) {
 		File f = new File(fileName);
+		Scanner mainScanner = new Scanner(f);
+		
+		// Get first line
+		String line = mainScanner.nextLine();
+		String [] parts = line.split(",");
+		
+		HashMap<Integer, String> headers = (HashMap<Integer, String>) headerHelper(parts);
+		
+		while (mainScanner.hasNextLine()) {
+			line = mainScanner.nextLine();
+			parts = line.split(",");
+			
+			for (int i = 0; i < parts.length; i++) {
+				String stuID = "";
+				String stuFName = "";
+				String stuLName = "";
+				
+				// get column type
+				if (headers.containsKey(i)) {
+					String val = headers.get(i);
+					if (val == "id") {
+						stuID = parts[i];
+					} else if (val == "classGrade") {
+						
+					}
+				}
+				
+				Student stu = new Student();
+				insertStudent("asdfaj;l", stu);
+			}
+		}
 	}
 
 	public static void MainLoop() {
@@ -46,6 +90,10 @@ public class Main {
 //				}
 			}
 		}
+	}
+	
+	private static void insertStudent(String stuID, Student stu) {
+		
 	}
 
 	public static void main(String[] args) {

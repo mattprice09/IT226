@@ -1,7 +1,5 @@
 
 public class Assignment {
-	private String stuID;
-	private String className;
 	private String name;
 	private int grade;
 	private String comments;
@@ -11,23 +9,7 @@ public class Assignment {
 		this.grade = grade;
 		this.setComments(comments);
 	}
-
-	public String getStuID() {
-		return stuID;
-	}
-
-	public void setStuID(String stuID) {
-		this.stuID = stuID;
-	}
-
-	public String getClassName() {
-		return className;
-	}
-
-	public void setClassName(String className) {
-		this.className = className;
-	}
-
+	
 	public String getName() {
 		return name;
 	}

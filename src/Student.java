@@ -15,6 +15,7 @@ public class Student {
 		this.id = id;
 	}
 
+	// Add a class to the student's map
 	public void addClass(String className, char grade) {
 		classGrades.put(className, grade);
 	}

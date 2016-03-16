@@ -45,7 +45,39 @@ public class Student {
 		return this.classAssignments.get(className);
 	}
 
-	// ~~~~~~~~~~~~~~~~~~~~~~~ Getters and setters below ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	public String toString() {
+		String output = "Student Id,";
+
+		// Print all column headers
+		for (String classID : this.classAssignments.keySet()) {
+			// Print all assignment titles
+			for (Assignment assign : this.classAssignments.get(classID)) {
+				output = output + classID + "-" + assign.getName() + ",";
+			}
+
+			output = output + classID + "-Letter Grade,";
+		}
+		output = output.substring(0, output.length() - 1) + "\n";
+
+		output = output + this.id + ",";
+		// Print all grades
+		for (String classID : this.classAssignments.keySet()) {
+
+			// Print all assignment information
+			for (Assignment assign : this.classAssignments.get(classID)) {
+				output = output + assign.getGrade() + ",";
+			}
+
+			// Print class grade
+			output = output + this.classGrades.get(classID) + ",";
+		}
+
+		output = output.substring(0, output.length() - 1);
+		return output;
+	}
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~ Getters and setters below
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	public String getfName() {
 		return fName;

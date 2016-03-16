@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class Main {
 
@@ -12,49 +13,250 @@ public class Main {
 	// Helper method that returns a map of all row indeces mapped to data 'type'
 	private static Map<Integer, String> headerHelper(String[] parts) {
 		Map<Integer, String> output = new HashMap<Integer, String>();
-		for (int i = 0; i < parts.length; i++) {
 
+		int k = 0;
+		for (int i = 0; i < parts.length; i++) {
+			String curr = parts[i].toLowerCase();
 			// Find the column that contains student id's
-			if (parts[i].contains("id")) {
-				output.put(i, "id");
+			if (Pattern.compile(" id$").matcher(curr).find()) {
+				// column is the ID column
+				output.put(k, "id");
+			} else if (curr.contains("name")) {
+				// name column
+				if ((!curr.contains("first")) && (!curr.contains("last"))) {
+					// contains full name
+					output.put(i, "lName");
+					output.put(i + 1, "fName");
+					k++;
+				} else if (curr.contains("first")) {
+					// contains first name
+					output.put(k, "fName");
+				} else {
+					// contains last name
+					output.put(k, "lName");
+				}
+			} else if (curr.contains("comment")) {
+				// skip comments
+				k++;
+				continue;
+			} else if (curr.contains("grade")) {
+				// grade column
+				output.put(k, "grade");
+			} else {
+				// assignment column
+				output.put(k, parts[i]);
 			}
+			k++;
 		}
 
 		return output;
 	}
 
-	public static void ReadData(String fileName) throws FileNotFoundException {
+	// Get the appropriate integer value for the input letter grade
+	private static int getNumeric(Character letter) {
+		if (letter.equals('A')) {
+			return 0;
+		}
+		if (letter.equals('B')) {
+			return 1;
+		}
+		if (letter.equals('C')) {
+			return 2;
+		}
+		if (letter.equals('D')) {
+			return 3;
+		}
+
+		// student got an F
+		return 4;
+	}
+
+	// Helper to aggregate scores data
+	private static int[] queryScores(String classID) {
+		int[] scores = new int[5];
+		boolean foundOne = false;
+
+		// Check every class for an ID match
+		for (Class clss : allClasses) {
+			if (clss.getClassID().contains(classID)) {
+				foundOne = true;
+				// Get scores for all students in the matched class
+				for (String id : clss.getStudents()) {
+					Character grade = allStudents.get(id).getClassGrade(clss.getClassID());
+					scores[getNumeric(grade)]++;
+				}
+			}
+		}
+
+		// User's input resulted in nothing being found.
+		if (!foundOne) {
+			return null;
+		}
+
+		return scores;
+	}
+
+	// Helper that adds '.csv' to file name if user didn't do it
+	private static String cleanFileName(String fName) {
+		String output = fName;
+
+		int index = output.indexOf(".csv");
+
+		if (index != output.length() - 4) {
+			output = output + ".csv";
+		}
+		return output;
+	}
+
+	// Remove the 'comments' from the input string
+	private static String removeComments(String line) {
+		
+		// Handle quotation marks in the name fields
+		String [] parts = line.split(",");
+		for (int i = 0; i < 3; i++) {
+			if (parts[i].contains("\"")) {
+				parts[i] = parts[i].replace("\"", "").trim();
+				parts[i+1] = parts[i+1].replace("\"", "").trim();
+			}
+		}
+		line = String.join(",", parts);
+		String temp = line;
+
+		int startIndex = line.indexOf(",\"");
+		// No comments in line
+		if (startIndex == -1) {
+			return line;
+		}
+
+		String output = line.substring(0, startIndex + 1);
+
+		// Loop until the end of the string, removing all quoted comments
+		while (startIndex != -1) {
+			temp = temp.substring(startIndex + 2);
+			int endIndex = temp.indexOf("\",");
+
+			// Check if there are commas outside of quotes
+			String between = temp.substring(0, endIndex);
+			int numBetween = between.length() - between.replace("\"", "").length();
+
+			if (numBetween % 2 == 0) {
+				// Found end of comment
+				startIndex = temp.indexOf(",\"");
+				if (startIndex == -1) {
+					// done with the line
+					output = output + temp.substring(endIndex + 1);
+				} else {
+					output = output + temp.substring(endIndex + 1, startIndex + 1);
+				}
+			} else {
+				// False instance of the sequence ",
+				startIndex = -2;
+				temp = temp.replaceFirst("\",", "\"");
+			}
+		}
+		return output;
+	}
+
+	public static void ReadData(String fileName, String classID) throws FileNotFoundException {
 		File f = new File(fileName);
 		Scanner mainScanner = new Scanner(f);
+
+		Class clss = new Class(classID);
 
 		// Get first line
 		String line = mainScanner.nextLine();
 		String[] parts = line.split(",");
 
 		HashMap<Integer, String> headers = (HashMap<Integer, String>) headerHelper(parts);
+		for (Integer key : headers.keySet()) {
+			System.out.println(key + " is mapped to " + headers.get(key));
+		}
 
+		// Iterate through all rows in .csv file
 		while (mainScanner.hasNextLine()) {
 			line = mainScanner.nextLine();
+			line = removeComments(line);
 			parts = line.split(",");
-
 			for (int i = 0; i < parts.length; i++) {
-				String stuID = "";
-				String stuFName = "";
-				String stuLName = "";
+				System.out.println(i + ": " + parts[i]);
+			}
 
+			String stuID = "";
+			String stuFName = "";
+			String stuLName = "";
+			// first 3 rows will always contain id, first name, and last name
+			for (int i = 0; i < 3; i++) {
 				// get column type
-				if (headers.containsKey(i)) {
-					String val = headers.get(i);
-					if (val == "id") {
-						stuID = parts[i];
-					} else if (val == "classGrade") {
+				String val = headers.get(i);
+				if (val == "id") {
+					stuID = parts[i];
+				} else if (val == "lName") {
+					stuLName = parts[i];
+				} else if (val == "fName") {
+					stuFName = parts[i];
+				}
+			}
 
+			// create/get Student object and read in the rest of the student's
+			// data
+			Student stu;
+			if (allStudents.containsKey(stuID)) {
+				// student already exists - append info for new class
+				stu = allStudents.get(stuID);
+			} else {
+				// new student
+				stu = new Student(stuFName, stuLName, stuID);
+			}
+
+			// Read data from columns
+			for (int j = 3; j < parts.length; j++) {
+				if (headers.containsKey(j)) {
+					String val = headers.get(j);
+					System.out.println(j);
+					System.out.println("Val: " + val);
+					System.out.println("Parts[j]: " + parts[j]);
+					if (val == "grade") {
+						// 'grade' column
+						stu.addClass(classID, parts[j].charAt(0));
+					} else {
+						// 'assignment' column
+						int score = (int) (Math.round(Double.parseDouble(parts[j])));
+						Assignment assign = new Assignment(val, score);
+						stu.addAssignment(classID, assign);
 					}
 				}
-
-				// Student stu = new Student();
-				// insertStudent("asdfaj;l", stu);
 			}
+
+			clss.addStudent(stuID);
+			allStudents.put(stuID, stu);
+		}
+		allClasses.add(clss);
+	}
+
+	/**
+	 * Write student information to file specified by user.
+	 */
+	private static void saveStudent(String stuID, String fName) {
+		if (allStudents.containsKey(stuID)) {
+			// Student ID exists
+			Student stu = allStudents.get(stuID);
+			BufferedWriter writer = null;
+			try {
+				writer = new BufferedWriter(new FileWriter(fName, true));
+				writer.write(stu.toString());
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+
+			// Close BufferedWriter
+			try {
+				writer.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		} else {
+			// Student ID doesn't exist
+			System.out.println("Invalid student ID.");
 		}
 	}
 
@@ -94,57 +296,9 @@ public class Main {
 			// Good input. Print results
 			Character[] letters = { 'A', 'B', 'C', 'D', 'F' };
 			for (int i = 0; i < scores.length; i++) {
-				System.out.println("# of " + letters[i] + "'s: " + scores[0]);
+				System.out.println("# of " + letters[i] + "'s: " + scores[i]);
 			}
 		}
-	}
-
-	private static void insertStudent(String stuID, Student stu) {
-		allStudents.put(stuID, stu);
-	}
-
-	// Helper to aggregate scores data
-	private static int[] queryScores(String classID) {
-		int[] scores = new int[6];
-		boolean foundOne = false;
-
-		// Check every class for an ID match
-		for (Class clss : allClasses) {
-			if (clss.getClassID().contains(classID)) {
-				foundOne = true;
-				// Get scores for all students in the matched class
-				for (String id : clss.getStudents()) {
-					Character grade = allStudents.get(id).getClassGrade(clss.getClassID());
-					scores[getNumeric(grade)]++;
-				}
-			}
-		}
-
-		// User's input resulted in nothing being found.
-		if (!foundOne) {
-			return null;
-		}
-
-		return scores;
-	}
-
-	// Get the appropriate integer value for the input letter grade
-	private static int getNumeric(Character letter) {
-		if (letter.equals('A')) {
-			return 0;
-		}
-		if (letter.equals('B')) {
-			return 1;
-		}
-		if (letter.equals('C')) {
-			return 2;
-		}
-		if (letter.equals('D')) {
-			return 3;
-		}
-
-		// student got an F
-		return 4;
 	}
 
 	public static void MainLoop() throws FileNotFoundException {
@@ -160,7 +314,7 @@ public class Main {
 			System.out.println("E - Exit");
 
 			input = in.next().toLowerCase().trim();
-			
+
 			// Exit
 			if (input.equals("e")) {
 				System.exit(0);
@@ -168,12 +322,33 @@ public class Main {
 
 			// Add data
 			if (input.equals("a")) {
-				ReadData(input);
+				System.out.println("Enter the file name to read: ");
+				String fName = in.next();
+				fName = cleanFileName(fName);
+				if (fName.indexOf("Data/") != 0) {
+					fName = "Data/" + fName;
+				}
+				System.out.println("Enter the semester (fall, spring, summer): ");
+				String semester = in.next().toLowerCase();
+				System.out.println("Enter the year: ");
+				String year = in.next();
+				System.out.println("Enter the course number: ");
+				String cNum = in.next();
+
+				String classID = cNum + "-" + semester + "-" + year;
+				ReadData(fName, classID);
 			}
 
 			// Save data
 			if (input.equals("s")) {
+				System.out.println("Enter a student ID.");
+				String stuID = in.next();
+				System.out.println("Enter file name.");
+				String fName = in.next();
 
+				fName = cleanFileName(fName);
+
+				saveStudent(stuID, fName);
 			}
 
 			// Query data
@@ -194,6 +369,6 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
-		MainLoop();
+		 MainLoop();
 	}
 }

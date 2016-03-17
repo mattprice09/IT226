@@ -1,8 +1,10 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Main {
@@ -157,9 +159,19 @@ public class Main {
 		return output;
 	}
 
-	public static void ReadData(String fileName, String classID) throws FileNotFoundException {
+	/**
+	 * Read file containing class/student data and store into local data structures.
+	 */
+	public static void ReadData(String fileName, String classID) {
+		
 		File f = new File(fileName);
-		Scanner mainScanner = new Scanner(f);
+		Scanner mainScanner;
+		try {
+			mainScanner = new Scanner(f);
+		} catch (FileNotFoundException e) {
+			System.out.println("Invalid file name.");
+			return;
+		}
 
 		Class clss = new Class(classID);
 
@@ -168,18 +180,12 @@ public class Main {
 		String[] parts = line.split(",");
 
 		HashMap<Integer, String> headers = (HashMap<Integer, String>) headerHelper(parts);
-		for (Integer key : headers.keySet()) {
-			System.out.println(key + " is mapped to " + headers.get(key));
-		}
 
 		// Iterate through all rows in .csv file
 		while (mainScanner.hasNextLine()) {
 			line = mainScanner.nextLine();
 			line = removeComments(line);
 			parts = line.split(",");
-			for (int i = 0; i < parts.length; i++) {
-				System.out.println(i + ": " + parts[i]);
-			}
 
 			String stuID = "";
 			String stuFName = "";
@@ -212,9 +218,6 @@ public class Main {
 			for (int j = 3; j < parts.length; j++) {
 				if (headers.containsKey(j)) {
 					String val = headers.get(j);
-					System.out.println(j);
-					System.out.println("Val: " + val);
-					System.out.println("Parts[j]: " + parts[j]);
 					if (val == "grade") {
 						// 'grade' column
 						stu.addClass(classID, parts[j].charAt(0));
@@ -245,7 +248,8 @@ public class Main {
 				writer = new BufferedWriter(new FileWriter(fName, true));
 				writer.write(stu.toString());
 			} catch (IOException e1) {
-				e1.printStackTrace();
+				System.out.println("Invalid output file name. Please try again.");
+				return;
 			}
 
 			// Close BufferedWriter
@@ -264,6 +268,7 @@ public class Main {
 	 * Handle query from user after the user entered 'g' or 'G'.
 	 */
 	public static void HandleQuery(String className, String semester, String year) {
+		
 		// User entered "none" for only one of semester or year.
 		if (semester.equals("none") ^ year.equals("none")) {
 			System.out.println("Invalid input. Each semester season must have a corresponding year, and vice-versa.");
@@ -301,6 +306,13 @@ public class Main {
 		}
 	}
 
+	/**
+	 * The main text-based interface for the user. There are 4 commands:
+	 * a - Add data from file
+	 * s - Write data to file
+	 * g - Query class score data
+	 * e - Exit the program
+	 */
 	public static void MainLoop() throws FileNotFoundException {
 		Scanner in = new Scanner(System.in);
 		String input = "";
@@ -325,16 +337,32 @@ public class Main {
 				System.out.println("Enter the file name to read: ");
 				String fName = in.next();
 				fName = cleanFileName(fName);
-				if (fName.indexOf("Data/") != 0) {
-					fName = "Data/" + fName;
-				}
+//				if (fName.indexOf("Data/") != 0) {
+//					fName = "Data/" + fName;
+//				}
 				System.out.println("Enter the semester (fall, spring, summer): ");
-				String semester = in.next().toLowerCase();
+				String semester = in.next().toLowerCase().trim();
 				System.out.println("Enter the year: ");
-				String year = in.next();
+				String year = in.next().trim();
 				System.out.println("Enter the course number: ");
-				String cNum = in.next();
-
+				String cNum = in.next().trim();
+				
+				// Handle invalid semester input
+				Set<String> seasons = new HashSet<String>();
+				seasons.add("summer");
+				seasons.add("fall");
+				seasons.add("spring");
+				if (!seasons.contains(semester)) {
+					System.out.println("Invalid semester. Please enter a valid semester (summer, fall, or spring).");
+					continue;
+				}
+				
+				// Handle invalid year input
+				if (!Pattern.matches("^\\d\\d\\d\\d$", year)) {
+					System.out.println("Invalid year input. Please enter a valid 4-digit year.");
+					continue;
+				}
+				
 				String classID = cNum + "-" + semester + "-" + year;
 				ReadData(fName, classID);
 			}

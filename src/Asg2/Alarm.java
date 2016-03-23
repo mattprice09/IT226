@@ -24,6 +24,11 @@ public class Alarm {
 	public static void triggerAlarm() {
 		
 	}
+	
+	// Kevin
+	public static void snooze() {
+		
+	}
 
 	public String getMessage() {
 		return message;

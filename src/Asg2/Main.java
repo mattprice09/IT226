@@ -10,7 +10,7 @@ public class Main {
 
 	public ArrayList<Alarm> alarms = new ArrayList<Alarm>();
 
-	// Kevin?
+	// Kevin/Randy
 	public static void initiateAll() {
 
 	}

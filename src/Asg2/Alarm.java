@@ -8,7 +8,15 @@ public class Alarm {
 	private String message;
 	private LocalDateTime stopTime;
 	private int numSnoozes;
-	
+
+	public Alarm(LocalDateTime dt) {
+
+	}
+
+	public Alarm(LocalDateTime dt, String msg) {
+
+	}
+
 	public void startTimer(int time) {
 		Timer timer = new Timer();
 		int inSec = time * 1000;
@@ -19,15 +27,15 @@ public class Alarm {
 			}
 		}, inSec);
 	}
-	
+
 	// Matt
 	public static void triggerAlarm() {
-		
+
 	}
-	
+
 	// Kevin
 	public static void snooze() {
-		
+
 	}
 
 	public String getMessage() {

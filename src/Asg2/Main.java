@@ -197,7 +197,7 @@ public class Main {
 					
 					// close the popup
 					removePopup(submitBtn);
-					System.out.println(alarms.size());
+					System.out.println("Created alarm.");
 				}
 			}
 		});
@@ -215,6 +215,9 @@ public class Main {
 		SubmitPanel.add(cancelBtn);
 
 		newAlarmFrame.setVisible(true);
+	}
+	
+	private static void newTimerPopup() {
 
 	}
 
@@ -245,10 +248,6 @@ public class Main {
 		SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
 		String inputDate = formatter.format(input);
 		return inputDate;
-	}
-
-	private static void newTimerPopup() {
-
 	}
 
 	// Randy

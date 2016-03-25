@@ -1,6 +1,7 @@
 package Asg2;
 
 import java.time.LocalDateTime;
+import java.time.temporal.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -8,18 +9,25 @@ public class Alarm {
 	private String message;
 	private LocalDateTime stopTime;
 	private int numSnoozes;
+	private int time;
 
 	public Alarm(LocalDateTime dt) {
-
+		this.message = "";
+		this.stopTime = dt;
+		this.time = (int) (LocalDateTime.now().until(this.stopTime, ChronoUnit.SECONDS));
+		this.numSnoozes = 0;
 	}
 
 	public Alarm(LocalDateTime dt, String msg) {
-
+		this.message = msg;
+		this.stopTime = dt;
+		this.time = (int) (LocalDateTime.now().until(this.stopTime, ChronoUnit.SECONDS));
+		this.numSnoozes = 0;
 	}
 
-	public void startTimer(int time) {
+	public void startTimer() {
 		Timer timer = new Timer();
-		int inSec = time * 1000;
+		int inSec = this.time * 1000;
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -33,9 +41,18 @@ public class Alarm {
 
 	}
 
-	// Kevin
-	public static void snooze() {
+	public void snooze() {
+		this.time = 60;
+		this.startTimer();
+		numSnoozes++;
+	}
 
+	public void setTime(int time) {
+		this.time = time;
+	}
+
+	public double getTime() {
+		return this.time;
 	}
 
 	public String getMessage() {

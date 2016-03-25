@@ -1,6 +1,7 @@
 package Asg2;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -11,8 +12,24 @@ public class Main {
 	public ArrayList<Alarm> alarms = new ArrayList<Alarm>();
 
 	// Kevin/Randy
-	public static void initiateAll() {
-
+	public static void initiateAll(ArrayList<Alarm> alarms) {
+		//read from file and fill list
+		for(Alarm alarm : alarms)
+		{
+			LocalDateTime now = LocalDateTime.now();
+			LocalDateTime alarmStopTime = alarm.getStopTime();
+			//will display alarms that went off while program was off, or reset their timers
+			if(alarmStopTime.isBefore(now))
+			{
+				alarm.triggerAlarm();
+			}
+			else
+			{
+				int time = (int) (now.until(alarmStopTime, ChronoUnit.SECONDS));
+				alarm.setTime(time);
+				alarm.startTimer();
+			}
+		}
 	}
 
 	// Matt
@@ -21,8 +38,9 @@ public class Main {
 	}
 
 	// Kevin
-	public static void addAlarm(LocalDateTime endDT) {
-
+	public static void addAlarm(ArrayList<Alarm> alarms, Alarm alarm) {
+		alarms.add(alarm);
+		alarm.startTimer();
 	}
 
 	// Randy
@@ -36,8 +54,17 @@ public class Main {
 	}
 
 	// Kevin
-	public static void removeAlarm() {
-
+	public static void removeAlarm(ArrayList<Alarm> alarms) {
+		LocalDateTime now = LocalDateTime.now();
+		for(Alarm alarm : alarms)
+		{
+			if(alarm.getStopTime().isBefore(now))
+			{
+				//null alarms should not be written to the xml instance. 
+				//They will be deleted because they wont be read back in.
+				alarm = null;
+			}
+		}
 	}
 
 	public static void main(String[] args) {
@@ -50,7 +77,6 @@ public class Main {
 		 } else {
 		 System.out.println("is before");
 		 }
-		 System.out.println(then);
 
 //		Timer timer = new Timer();
 //		Alarm alarm = new Alarm();

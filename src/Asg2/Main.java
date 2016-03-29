@@ -12,6 +12,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -44,7 +45,10 @@ public class Main {
 	public static ArrayList<Alarm> alarms = new ArrayList<Alarm>();
 	public static final String dateFormat = "yyyy/MM/dd";
 
-	// Kevin/Randy
+	/**
+	 * Parses the XML file containing current alarms, triggers any that should
+	 * have occurred in the past.
+	 */
 	public static void initiateAll() {
 		// read from file and fill list
 		for (Alarm alarm : alarms) {
@@ -108,6 +112,7 @@ public class Main {
 		createTimerBtn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				newTimerPopup();
 			}
 		});
 		flowPanel.add(createTimerBtn);
@@ -252,9 +257,118 @@ public class Main {
 
 	}
 
-	// Matt
+	/**
+	 * Create a new alarm object by allowing user to input the number of minutes
+	 * displacement.
+	 */
 	private static void newTimerPopup() {
+		JFrame NewTimerFrame;
+		NewTimerFrame = new JFrame();
+		NewTimerFrame.setBounds(100, 100, 597, 433);
+		NewTimerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		NewTimerFrame.getContentPane().setLayout(new GridLayout(4, 1, 0, 0));
 
+		JPanel TitlePanel = new JPanel();
+		NewTimerFrame.getContentPane().add(TitlePanel);
+		TitlePanel.setLayout(new BorderLayout(0, 0));
+
+		JLabel TitleLbl = new JLabel("New Timer");
+		TitleLbl.setFont(new Font("SansSerif", Font.BOLD, 40));
+		TitleLbl.setHorizontalAlignment(SwingConstants.CENTER);
+		TitlePanel.add(TitleLbl, BorderLayout.CENTER);
+
+		JPanel MinutesPanel = new JPanel();
+		NewTimerFrame.getContentPane().add(MinutesPanel);
+		MinutesPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+
+		JLabel numMinutesLbl = new JLabel("For how many minutes?");
+		numMinutesLbl.setHorizontalAlignment(SwingConstants.CENTER);
+		MinutesPanel.add(numMinutesLbl);
+		numMinutesLbl.setFont(new Font("SansSerif", Font.PLAIN, 16));
+
+		// Minute options: 1-180 minutes
+		JComboBox comboBox = new JComboBox();
+		comboBox.setMaximumRowCount(10);
+
+		for (int i = 1; i < 181; i++) {
+			comboBox.addItem(i + "");
+		}
+		MinutesPanel.add(comboBox);
+
+		JPanel ButtonsPanel = new JPanel();
+		NewTimerFrame.getContentPane().add(ButtonsPanel);
+
+		JPanel MsgPanel = new JPanel();
+		ButtonsPanel.add(MsgPanel);
+
+		// "Message" JLabel
+		JLabel msgLbl = new JLabel("Message (Optional): ");
+		msgLbl.setFont(new Font("SansSerif", Font.PLAIN, 16));
+		MsgPanel.add(msgLbl);
+
+		// Input text field
+		JTextField textField = new JTextField();
+		textField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+		MsgPanel.add(textField);
+		textField.setColumns(30);
+
+		JPanel SubmitPanel = new JPanel();
+		NewTimerFrame.getContentPane().add(SubmitPanel);
+		SubmitPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+
+		// Button that creates the new alarm
+		JButton submitBtn = new JButton("Submit");
+		submitBtn.setFont(new Font("SansSerif", Font.PLAIN, 18));
+		submitBtn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				// CREATE new alarm
+
+				int minutes = comboBox.getSelectedIndex() + 1;
+				System.out.println(minutes);
+
+				LocalDateTime inputDT = LocalDateTime.now().plusMinutes(minutes);
+				String msg = textField.getText();
+
+				// Don't do anything if the input datetime is
+				// chronologically in the past.
+				if (LocalDateTime.now().isAfter(inputDT)) {
+					return;
+				}
+
+				// instantiate Alarm object
+				Alarm newAlarm;
+				if (msg.equals("")) {
+					newAlarm = new Alarm(inputDT);
+				} else {
+					newAlarm = new Alarm(inputDT, msg);
+				}
+
+				// start timer for the new alarm
+				newAlarm.startTimer();
+
+				alarms.add(newAlarm);
+
+				// close the popup
+				removePopup(submitBtn);
+				System.out.println("Created alarm.");
+
+			}
+		});
+		SubmitPanel.add(submitBtn);
+
+		// Button that closes the current NewTimerFrame
+		JButton cancelBtn = new JButton("Cancel");
+		cancelBtn.setFont(new Font("SansSerif", Font.PLAIN, 18));
+		cancelBtn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				removePopup(cancelBtn);
+			}
+		});
+		SubmitPanel.add(cancelBtn);
+
+		NewTimerFrame.setVisible(true);
 	}
 
 	// Helper that removes the current frame that contains the button that was
@@ -302,7 +416,7 @@ public class Main {
 			doc.appendChild(allAlarms);
 
 			for (Alarm alarm : alarms) {
-				
+
 				// Don't write deleted alarms
 				if (alarm != null) {
 					Element alarmElm = doc.createElement("alarm");

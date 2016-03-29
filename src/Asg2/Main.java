@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.Properties;
 import java.text.SimpleDateFormat;
 import org.jdatepicker.impl.*;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,6 +19,14 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -24,6 +35,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 
 public class Main {
 
@@ -235,6 +247,11 @@ public class Main {
 		newAlarmFrame.setVisible(true);
 	}
 
+	// Under development
+	private static void toggleFlash() {
+
+	}
+
 	// Matt
 	private static void newTimerPopup() {
 
@@ -242,7 +259,7 @@ public class Main {
 
 	// Helper that removes the current frame that contains the button that was
 	// clicked.
-	private static void removePopup(JButton button) {
+	public static void removePopup(JButton button) {
 		Container currFrame = button.getParent();
 		do
 			currFrame = currFrame.getParent();
@@ -269,18 +286,65 @@ public class Main {
 		return inputDate;
 	}
 
-	// Randy
-	private static void writeAlarm() {
-
-	}
-
-	// Randy
+	/**
+	 * Writes to files
+	 */
 	private static void writeAll() {
+
+		try {
+
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+			// root: alarm
+			Document doc = docBuilder.newDocument();
+			Element allAlarms = doc.createElement("alarms");
+			doc.appendChild(allAlarms);
+
+			for (Alarm alarm : alarms) {
+				
+				// Don't write deleted alarms
+				if (alarm != null) {
+					Element alarmElm = doc.createElement("alarm");
+					allAlarms.appendChild(alarmElm);
+
+					// Element dateTime
+					Element dateTime = doc.createElement("dateTime");
+					dateTime.appendChild(doc.createTextNode(alarm.getStopTime() + ""));
+					alarmElm.appendChild(dateTime);
+
+					// Element message
+					Element message = doc.createElement("message");
+					message.appendChild(doc.createTextNode(alarm.getMessage()));
+					alarmElm.appendChild(message);
+
+					// Element snooze
+					Element snooze = doc.createElement("numSnoozes");
+					snooze.appendChild(doc.createTextNode(alarm.getNumSnoozes() + ""));
+					alarmElm.appendChild(snooze);
+				}
+			}
+
+			// write the content into xml file
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource source = new DOMSource(doc);
+			StreamResult result = new StreamResult(new File("src/Asg2/AlarmXML.xml"));
+
+			transformer.transform(source, result);
+
+			System.out.println("File saved!");
+
+		} catch (ParserConfigurationException pce) {
+			pce.printStackTrace();
+		} catch (TransformerException tfe) {
+			tfe.printStackTrace();
+		}
 
 	}
 
 	// Kevin
-	public static void removeAlarm(ArrayList<Alarm> alarms) {
+	public static void removeAlarm() {
 		LocalDateTime now = LocalDateTime.now();
 		for (Alarm alarm : alarms) {
 			if (alarm.getStopTime().isBefore(now)) {
@@ -292,6 +356,13 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
+
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+			public void run() {
+				writeAll();
+			}
+		}));
+
 		initiateAll();
 		displayUI();
 	}

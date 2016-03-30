@@ -51,7 +51,6 @@ public class Alarm {
 		}, inSec);
 	}
 
-	// Matt
 	public void triggerAlarm() {
 		JFrame frame;
 		frame = new JFrame();
@@ -137,10 +136,7 @@ public class Alarm {
 			}, 2000);
 		}
 	}
-
-	/**
-	 * Snooze
-	 */
+	
 	public void snooze() {
 		this.time = 60;
 		this.startTimer();

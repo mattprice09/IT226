@@ -26,7 +26,7 @@ public class XMLParser extends DefaultHandler {
 				public void startElement(String uri, String localName, String qName, Attributes attributes)
 						throws SAXException {
 					
-					// alarm element
+					//Checks for Alarm element tags
 					if (qName.equalsIgnoreCase("dateTime"))
 						dateTime = true;
 					if (qName.equalsIgnoreCase("message"))
@@ -35,6 +35,7 @@ public class XMLParser extends DefaultHandler {
 						numSnoozes = true;
 				}
 
+				//Unneeded method that prints the end tags
 //				public void endElement(String uri, String localName, String qName) throws SAXException {
 //					System.out.println("End tag: " + qName);
 //				}
@@ -47,15 +48,15 @@ public class XMLParser extends DefaultHandler {
 					if (message) {
 						message = false;
 						msg = new String(ch, start, length);
-						if (msg.equals("0")) {
+						if (msg.equals("0"))	//Alarms w/o messages have whitespace with a value "0". 
 							msg = " ";
-						}
 					}
 					if (numSnoozes) {
 						numSnoozes = false;
 						snoozes = new String(ch, start, length);
 					}
 					
+					//Prevents empty strings from being added to Alarm objects
 					if (!date.equals("") && !msg.equals("") && !snoozes.equals("")) {
 						System.out.println("Date: " + date);
 						System.out.println("Message: " + msg);
@@ -69,7 +70,6 @@ public class XMLParser extends DefaultHandler {
 						msg = "";
 						snoozes = "";
 						Main.alarms.add(newAlarm);
-						// add to arrayList
 					}
 				}
 			};
@@ -78,5 +78,4 @@ public class XMLParser extends DefaultHandler {
 			e.printStackTrace();
 		}
 	}
-
 }

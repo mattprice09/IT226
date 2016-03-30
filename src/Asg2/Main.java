@@ -67,8 +67,7 @@ public class Main {
 		for (Alarm alarm : alarms) {
 			LocalDateTime now = LocalDateTime.now();
 			LocalDateTime alarmStopTime = alarm.getStopTime();
-			// will display alarms that went off while program was off, or reset
-			// their timers
+			// will display alarms that went off while program was off, or reset their timers
 			if (alarmStopTime.isBefore(now)) {
 				alarm.triggerAlarm();
 			} else {
@@ -265,10 +264,9 @@ public class Main {
 		newAlarmFrame.setVisible(true);
 	}
 
-	// Under development
-	private static void toggleFlash() {
-
-	}
+//	private static void toggleFlash() {
+//
+//	}
 
 	/**
 	 * Create a new alarm object by allowing user to input the number of minutes
@@ -414,7 +412,7 @@ public class Main {
 	}
 
 	/**
-	 * Writes to files
+	 * Writes to XML files
 	 */
 	private static void writeAll() {
 

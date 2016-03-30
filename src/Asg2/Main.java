@@ -10,6 +10,9 @@ import org.jdatepicker.impl.*;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -23,6 +26,8 @@ import javax.swing.SwingConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -455,6 +460,61 @@ public class Main {
 			tfe.printStackTrace();
 		}
 
+	}
+	
+	//Randy
+	public static class XMLParser extends DefaultHandler {
+		try {		
+			SAXParserFactory sax = SAXParserFactory.newInstance();
+			SAXParser parser = sax.newSAXParser();
+			DefaultHandler handler = new DefaultHandler() {
+				
+				//boolean firstName, middleName, lastName, address, phone, email, emergency = false;
+				boolean dateTime, message, numSnoozes = false;
+				String date, msg, snoozes = "";
+				
+				public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {				
+					
+					//alarm element
+					if (qName.equalsIgnoreCase("dateTime"))
+						dateTime = true;
+					if (qName.equalsIgnoreCase("message"))
+						message = true;
+					if (qName.equalsIgnoreCase("numSnoozes"))
+						numSnoozes = true;					
+				}
+
+//				public void endElement(String uri, String localName, String qName) throws SAXException {
+//					System.out.println("End tag: " + qName);
+//				}
+
+				public void characters(char[] ch, int start, int length) throws SAXException{
+					if(dateTime) {
+						dateTime = false;
+						date = null;
+					}
+					if(message) {
+						message = false;
+						msg = null;
+					}
+					if(numSnoozes) {
+						numSnoozes = false;
+						snoozes = null;
+					}
+					if(!date.equals("") && !msg.equals("") && !snoozes.equals("")) {
+						LocalDateTime dt = LocalDateTime.parse(date);
+						Alarm newAlarm = new Alarm(dt, msg);
+						int snoozeNum = Integer.parseInt(snoozes);
+						newAlarm.setNumSnoozes(snoozeNum);
+						//add to arrayList
+					}
+				}
+			};			
+			parser.parse(new File("src/Instance.xml"), handler);	//???
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	// Kevin

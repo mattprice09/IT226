@@ -1,3 +1,5 @@
+package Asg1;
+
 import java.util.ArrayList;
 
 public class Class {

@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
+import java.util.Random;
 import java.text.SimpleDateFormat;
 import org.jdatepicker.impl.*;
 import org.w3c.dom.Attr;
@@ -14,6 +15,11 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -55,7 +61,9 @@ public class Main {
 	 * have occurred in the past.
 	 */
 	public static void initiateAll() {
-		// read from file and fill list
+
+		XMLParser.parse();
+
 		for (Alarm alarm : alarms) {
 			LocalDateTime now = LocalDateTime.now();
 			LocalDateTime alarmStopTime = alarm.getStopTime();
@@ -461,76 +469,53 @@ public class Main {
 		}
 
 	}
-	
-	//Randy
-	public static class XMLParser extends DefaultHandler {
-		try {		
-			SAXParserFactory sax = SAXParserFactory.newInstance();
-			SAXParser parser = sax.newSAXParser();
-			DefaultHandler handler = new DefaultHandler() {
-				
-				//boolean firstName, middleName, lastName, address, phone, email, emergency = false;
-				boolean dateTime, message, numSnoozes = false;
-				String date, msg, snoozes = "";
-				
-				public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {				
-					
-					//alarm element
-					if (qName.equalsIgnoreCase("dateTime"))
-						dateTime = true;
-					if (qName.equalsIgnoreCase("message"))
-						message = true;
-					if (qName.equalsIgnoreCase("numSnoozes"))
-						numSnoozes = true;					
-				}
 
-//				public void endElement(String uri, String localName, String qName) throws SAXException {
-//					System.out.println("End tag: " + qName);
-//				}
-
-				public void characters(char[] ch, int start, int length) throws SAXException{
-					if(dateTime) {
-						dateTime = false;
-						date = null;
-					}
-					if(message) {
-						message = false;
-						msg = null;
-					}
-					if(numSnoozes) {
-						numSnoozes = false;
-						snoozes = null;
-					}
-					if(!date.equals("") && !msg.equals("") && !snoozes.equals("")) {
-						LocalDateTime dt = LocalDateTime.parse(date);
-						Alarm newAlarm = new Alarm(dt, msg);
-						int snoozeNum = Integer.parseInt(snoozes);
-						newAlarm.setNumSnoozes(snoozeNum);
-						//add to arrayList
-					}
-				}
-			};			
-			parser.parse(new File("src/Instance.xml"), handler);	//???
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-	}
-
-	// Kevin
+	/**
+	 * Remove alarm from the list
+	 */
 	public static void removeAlarm() {
 		LocalDateTime now = LocalDateTime.now();
 		for (Alarm alarm : alarms) {
 			if (alarm.getStopTime().isBefore(now)) {
 				// null alarms should not be written to the xml instance.
 				// They will be deleted because they wont be read back in.
-				alarm = null;
+				alarms.remove(alarm);
+				return;
 			}
 		}
 	}
 
-	public static void main(String[] args) {
+	/**
+	 * Play random audio file 
+	 */
+	public static void playAudio() {
+		ArrayList<String> fileNames = new ArrayList<String>();
+		fileNames.add("Audio/WakeUp.wav");
+		fileNames.add("Audio/XtraCredit.wav");
+		fileNames.add("Audio/WakeUpAll.wav");
+		
+		Random random = new Random();
+		int index = random.nextInt(3);
+		
+		try {
+			File yourFile = new File(fileNames.get(index));
+			AudioInputStream stream;
+			AudioFormat format;
+			DataLine.Info info;
+			Clip clip;
 
+			stream = AudioSystem.getAudioInputStream(yourFile);
+			format = stream.getFormat();
+			info = new DataLine.Info(Clip.class, format);
+			clip = (Clip) AudioSystem.getLine(info);
+			clip.open(stream);
+			clip.start();
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+	}
+
+	public static void main(String[] args) {
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 			public void run() {
 				writeAll();

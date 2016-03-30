@@ -1,3 +1,4 @@
+package Asg1;
 
 public class Assignment {
 	private String name;

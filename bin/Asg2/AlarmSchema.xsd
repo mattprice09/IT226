@@ -5,7 +5,7 @@
       <xs:sequence>      
         <xs:element name="dateTime" type="xs:string" />
       	<xs:element name="message" type="xs:string" />  
-      	<xs:element name="numSnoozes" type="xs:integer" />  
+      	<xs:element name="numSnoozes" type="xs:string" />  
       </xs:sequence>    
     </xs:complexType>  
   </xs:element>
